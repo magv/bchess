@@ -1,0 +1,14 @@
+bin/lc0
+bin/stockfish-12
+data/bchess.conf
+data/maia-1100.pb.gz
+data/maia-1300.pb.gz
+data/maia-1500.pb.gz
+data/maia-1700.pb.gz
+data/maia-1900.pb.gz
+data/openings.sqlite
+bchess.py
+book.py
+ecodb.py
+engine.py
+imui.py
