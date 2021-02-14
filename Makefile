@@ -24,7 +24,7 @@ data/maia-%.pb.gz:
 	wget -O "$@" "https://github.com/CSSLab/maia-chess/releases/download/v1.0/$$(basename '$@')"
 
 bin/stockfish-12: tmp/stockfish_12_linux_x64_ssse.zip
-	@mkdir -p tmp
+	@mkdir -p tmp bin
 	cd tmp && unzip -o stockfish_12_linux_x64_ssse.zip stockfish_20090216_x64_ssse
 	mv tmp/stockfish_20090216_x64_ssse "$@"
 	touch "$@"
@@ -36,7 +36,7 @@ tmp/stockfish_12_linux_x64_ssse.zip:
 bin/lc0: tmp/v0.26.3.zip
 	which meson # must be installed
 	which ninja # must be installed
-	@mkdir -p tmp
+	@mkdir -p tmp bin
 	@rm -rf tmp/lc0-0.26.3/
 	cd tmp && unzip v0.26.3.zip
 	cd tmp/lc0-0.26.3 && ./build.sh minsize \
