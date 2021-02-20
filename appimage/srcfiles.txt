@@ -1,5 +1,5 @@
 bin/lc0
-bin/stockfish-12
+bin/stockfish
 data/bchess.conf
 data/maia-1100.pb.gz
 data/maia-1300.pb.gz

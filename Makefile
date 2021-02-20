@@ -1,6 +1,6 @@
 all: data/.done bin/.done
 
-bin/.done: bin/stockfish-12 bin/lc0
+bin/.done: bin/stockfish bin/lc0
 	date >$@
 
 data/.done: \
@@ -23,15 +23,15 @@ data/openings.sqlite: openings.sql
 data/maia-%.pb.gz:
 	wget -O "$@" "https://github.com/CSSLab/maia-chess/releases/download/v1.0/$$(basename '$@')"
 
-bin/stockfish-12: tmp/stockfish_12_linux_x64_ssse.zip
+bin/stockfish: tmp/stockfish_13_linux_x64_ssse.zip
 	@mkdir -p tmp bin
-	cd tmp && unzip -o stockfish_12_linux_x64_ssse.zip stockfish_20090216_x64_ssse
-	mv tmp/stockfish_20090216_x64_ssse "$@"
+	cd tmp && unzip -o stockfish_13_linux_x64_ssse.zip stockfish_13_linux_x64_ssse
+	mv tmp/stockfish_13_linux_x64_ssse "$@"
 	touch "$@"
 
-tmp/stockfish_12_linux_x64_ssse.zip:
+tmp/stockfish_13_linux_x64_ssse.zip:
 	@mkdir -p tmp
-	wget -O "$@" 'https://stockfishchess.org/files/stockfish_12_linux_x64_ssse.zip'
+	wget -O "$@" 'https://stockfishchess.org/files/stockfish_13_linux_x64_ssse.zip'
 
 bin/lc0: tmp/v0.26.3.zip
 	which meson # must be installed
