@@ -1,0 +1,25 @@
+[project]
+name = "bchess"
+version = "0.0.1"
+
+author = "Vitaly Magerya"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Natural Language :: English",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Topic :: Games/Entertainment :: Board Games"
+]
+dependencies = ["python-chess>=0.31"]
+description = "Beginner-friendly chess in a console, with batteries included."
+license = "GPLv3+"
+readme = "README.md"
+requires-python = ">=3.6"
+url = "https://github.com/magv/bchess"
+
+
+[build-system]
+build-backend = "enscons.api"
+requires = ["enscons>=0.26", "toml>=0.1"]

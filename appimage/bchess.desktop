@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=BChess
-Exec=bchess
-Icon=bchess
-Type=Application
-Categories=Game;BoardGame;ConsoleOnly;
-Terminal=true

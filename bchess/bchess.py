@@ -29,7 +29,7 @@ import book
 
 progdir = os.path.dirname(__file__)
 config_kwargs = {
-    "bin": os.path.join(progdir, "bin"),
+    "bin": os.path.join(progdir, "data"),
     "data": os.path.join(progdir, "data"),
     "date": datetime.date.today().strftime("%Y-%m-%d")
 }
@@ -81,18 +81,21 @@ def load_config(*filenames):
 
 def FormatText(text, attr=0):
     maxw = im.text_width
-    line = []
-    linew = 0
-    for word in text.split():
-        if linew + 1 + len(word) > maxw:
+    for i, para in enumerate(text.split("\n")):
+        if i > 0:
+            im.VSpace(1)
+        line = []
+        linew = 0
+        for word in para.split():
+            if linew + 1 + len(word) > maxw:
+                im.Text(" ".join(line), attr=attr)
+                line = [word]
+                linew = len(word)
+            else:
+                line.append(word)
+                linew += 1 + len(word)
+        if line:
             im.Text(" ".join(line), attr=attr)
-            line = [word]
-            linew = len(word)
-        else:
-            line.append(word)
-            linew += 1 + len(word)
-    if line:
-        im.Text(" ".join(line), attr=attr)
 
 UI_RENDERER = None
 def set_scene(renderer):
@@ -271,6 +274,7 @@ class UI0:
         self.title = "??"
         self.ai_index = imui.Ref(0)
         self.color_index = imui.Ref(1)
+        self.ailist = list(config["ai"].values())
 
     def render(self):
         with im.Center(width=60, height=20):
@@ -279,14 +283,22 @@ class UI0:
             im.Text("┣┻┓│  ├─╮├─╯╰─╮╰─╮")
             im.Text("┻━┛╰─╴┴ ┴╰─╴└─╯└─╯")
             im.VSpace(1)
+            allais = []
             with im.TableRow(40, 14):
                 with im.Cell():
                     im.Text("Play against:", attr=curses.A_BOLD)
                     with im.ListView(index=self.ai_index, id="lv-ai"):
-                        for i, ai in enumerate(self.config["ai"]):
-                            letter = chr(ord("1") + i if i < 9 else ord("a") + i - 9)
-                            if im.ListItem(f"{letter}) {ai['name']}", key=letter):
-                                self.title = ai
+                        for name, rat in self.config["rating_classes"].items():
+                            ailist = [ai for ai in self.ailist if rat["min"] <= ai["rating"] < rat["max"]]
+                            ailist.sort(key=lambda ai: ai["rating"])
+                            allais.extend(ailist)
+                            im.Text(f"== {name} ==")
+                            #for i, ai in enumerate(self.ailist):
+                            for i, ai in enumerate(ailist):
+                                letter = chr(ord("1") + i if i < 9 else ord("a") + i - 9)
+                                #if im.ListItem(f"{letter}) {ai['name']}", key=letter):
+                                if im.ListItem(f"{letter}) {ai['name']}"):
+                                    self.title = ai
                 with im.Cell():
                     im.Text("Play as:", attr=curses.A_BOLD)
                     with im.TableRow(7,(1,1)):
@@ -306,13 +318,12 @@ class UI0:
                             False if self.color_index() == 0 else \
                             True if self.color_index() == 2 else \
                             random.choice((True,False))
-                        cc = config_subs(self.config)
                         if usercolor:
-                            set_scene(UI(None, cc["ai"][self.ai_index()], cc).render)
+                            set_scene(UI(None, allais[self.ai_index()], self.config).render)
                         else:
-                            set_scene(UI(cc["ai"][self.ai_index()], None, cc).render)
+                            set_scene(UI(allais[self.ai_index()], None, self.config).render)
             im.VSpace(1)
-            aispec = self.config["ai"][self.ai_index()]
+            aispec = allais[self.ai_index()]
             im.Text(f"{aispec['name']}", attr=curses.A_BOLD)
             FormatText(aispec.get("description", ""))
 
@@ -350,7 +361,7 @@ class UI:
         self.flip = False if white_ai is None else True
         self.help = False
         self.pgn_filename = config["pgn_filename"]
-        self.user_name = os.getlogin()
+        self.user_name = os.environ.get("USER", "user")
         self.board = chess.Board()
         self.eval = {}
         self.aispec = (black_ai, white_ai)
@@ -394,7 +405,7 @@ class UI:
         if variation: game.headers["Variation"] = variation
         with open(filename, "w") as f:
             f.write(str(game))
-            f.write("\n\n")
+            f.write("\n\n\n")
 
     def apply_move(self, move):
         if move == "draw":
@@ -404,6 +415,7 @@ class UI:
         elif move == "undo":
             self.board.pop()
             self.board.pop()
+            return
         elif move == "flip":
             self.flip = not self.flip
             return
@@ -416,7 +428,7 @@ class UI:
                 self.board.push_uci(move)
             except:
                 self.board.push_san(move)
-        #self.save_pgn("/tmp/game.pgn")
+        self.save_pgn("/tmp/game.pgn")
         if not self.board.is_game_over(claim_draw=self.draw):
             if self.eval_ai:
                 self.eval_ai.analyze(self.board, self.eval_ai_update, self.board.fen())
@@ -429,9 +441,9 @@ class UI:
             book = self.book[self.board.turn]
             bookmove = book(self.board) if book else None
             if bookmove:
-                self.ai_update(engine.BestMove(uci=bookmove))
+                self.ai_update(bookmove)
             else:
-                ai.analyze(self.board, self.ai_update)
+                ai.play(self.board, self.ai_update)
 
     def try_user_move(self):
         if "\n" not in self.move: return
@@ -482,16 +494,11 @@ class UI:
                 else:
                     im.VSpace(1)
 
-    def ai_update(self, result):
-        if isinstance(result, engine.BestMove):
-            try:
-                move = result.uci
-                # The update here must be delayed because:
-                # 1) ai_update might get called from an AI thread;
-                # 2) ai_update might get called from apply_move itself.
-                im.run_soon(lambda: self.apply_move(move))
-            except Exception as e:
-                raise
+    def ai_update(self, move):
+        # The update here must be delayed because:
+        # 1) ai_update might get called from an AI thread;
+        # 2) ai_update might get called from apply_move itself.
+        im.run_soon(lambda: self.apply_move(move))
 
     def eval_ai_update(self, result, fen):
         if isinstance(result, engine.Evaluation):
@@ -528,10 +535,10 @@ def config_implement_colors(conf):
     return result
 
 def curses_main(win):
-    config = load_config(
+    config = config_subs(load_config(
         config_subs("{data}/bchess.conf"),
         os.path.expanduser("~/.config/bchess.conf"),
-        os.path.expanduser("~/.bchess.conf"))
+        os.path.expanduser("~/.bchess.conf")))
     curses.curs_set(False)
     curses.start_color()
     curses.use_default_colors()
