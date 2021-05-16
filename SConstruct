@@ -28,46 +28,6 @@ env = Environment(
     ENV = os.environ
 )
 
-generated_src = []
-
-#generated_src += File(["PKG-INFO"])
-
-generated_src += \
-    env.Command("build/Stockfish-sf_13.tar.gz", [],
-        "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_13.tar.gz'")
-
-generated_src += \
-    env.Command("build/lc0-0.27.0.tar.gz", [],
-        "wget -O $TARGET 'https://github.com/LeelaChessZero/lc0/archive/refs/tags/v0.27.0.tar.gz'")
-
-generated_src += \
-    env.Command("build/nn-62ef826d1a6d.nnue", [],
-        "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-62ef826d1a6d.nnue'")
-
-generated_src += \
-    env.Command("bchess/data/maia-1100.pb.gz", [],
-        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1100.pb.gz'")
-
-generated_src += \
-    env.Command("bchess/data/maia-1300.pb.gz", [],
-        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1300.pb.gz'")
-
-generated_src += \
-    env.Command("bchess/data/maia-1500.pb.gz", [],
-        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1500.pb.gz'")
-
-generated_src += \
-    env.Command("bchess/data/maia-1700.pb.gz", [],
-        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1700.pb.gz'")
-
-generated_src += \
-    env.Command("bchess/data/maia-1900.pb.gz", [],
-        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1900.pb.gz'")
-
-generated_src += \
-    env.Command("bchess/data/tinygyal-8.pb.gz", [],
-        "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/files/4432261/tinygyal-8.pb.gz'")
-
 generated = []
 
 def build_sqlite(target, source, env):
@@ -82,9 +42,6 @@ def build_sqlite(target, source, env):
 
 generated += \
     env.Command("bchess/data/openings.sqlite", "openings.sql", build_sqlite)
-
-generated += \
-    env.InstallAs("bchess/data/default.nnue", "build/nn-62ef826d1a6d.nnue")
 
 arch = (platform.machine(), 64 if sys.maxsize > 2**32 else 32)
 stockfish_arch = \
@@ -146,9 +103,9 @@ File("PKG-INFO")
 
 def vcs_files(*paths):
     if os.path.exists(".hg"):
-        return File(subprocess.check_output(["hg", "files", *paths], encoding="utf8").splitlines())
+        return File(sorted(subprocess.check_output(["hg", "files", *paths], encoding="utf8").splitlines()))
     if os.path.exists(".git"):
-        return File(subprocess.check_output(["git", "ls-files", *paths], encoding="utf8").splitlines())
+        return File(sorted(subprocess.check_output(["git", "ls-files", *paths], encoding="utf8").splitlines()))
     raise ValueError("Neither .hg nor .git directory is present")
 
 def vcs_commit():
@@ -159,18 +116,65 @@ def vcs_commit():
     raise ValueError("Neither .hg nor .git directory is present")
 
 if os.path.exists(".hg") or os.path.exists(".git"):
-    source = vcs_files("bchess")
+    generated_src = []
+
+    generated_src += \
+        env.Command("build/Stockfish-sf_13.tar.gz", [],
+            "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_13.tar.gz'")
+
+    generated_src += \
+        env.Command("build/lc0-0.27.0.tar.gz", [],
+            "wget -O $TARGET 'https://github.com/LeelaChessZero/lc0/archive/refs/tags/v0.27.0.tar.gz'")
+
+    generated_src += \
+        env.Command("bchess/data/nn-62ef826d1a6d.nnue", [],
+            "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-62ef826d1a6d.nnue'")
+
+    generated_src += \
+        env.Command("bchess/data/maia-1100.pb.gz", [],
+            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1100.pb.gz'")
+
+    generated_src += \
+        env.Command("bchess/data/maia-1300.pb.gz", [],
+            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1300.pb.gz'")
+
+    generated_src += \
+        env.Command("bchess/data/maia-1500.pb.gz", [],
+            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1500.pb.gz'")
+
+    generated_src += \
+        env.Command("bchess/data/maia-1700.pb.gz", [],
+            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1700.pb.gz'")
+
+    generated_src += \
+        env.Command("bchess/data/maia-1900.pb.gz", [],
+            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1900.pb.gz'")
+
+    generated_src += \
+        env.Command("bchess/data/tinygyal-8.pb.gz", [],
+            "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/files/4432261/tinygyal-8.pb.gz'")
+
     commit = vcs_commit()
-    generated_source = env.Textfile(target="bchess/__init__.py", source=[
+    generated_src += env.Textfile(target="bchess/__init__.py", source=[
         f'__version__ = "{pyproject["project"]["version"]}"',
         f'__commit__ = "{commit}"'
     ])
-    AlwaysBuild(generated_source)
-else:
-    # We are in a sdist.
-    source = DirectoryFiles("bchess")
-    generated_source = []
+    AlwaysBuild("bchess/__init__.py")
 
+    source = vcs_files("bchess")
+else:
+    # Hackety hack! We are in a source dist, and because SCons
+    # can't keep itself from rebuilding every generated file if
+    # .sconsign.dblite file is gone (i.e. in a source dist), we
+    # can't let it know that there are generated source files at all!
+    #
+    # Note that if some unlucky person downloads a source
+    # tarball without a proper VCS repository (e.g. from github
+    # releases), we'll also be in this branch, and the build won't
+    # work. Solution? Ban unlucky people.
+    generated_src = []
+    source = DirectoryFiles("bchess")
+    source = [file for file in DirectoryFiles("bchess") if file not in generated]
 
 platformlib = env.Whl("platlib", source + generated, root="")
 bdist = env.WhlFile(source=platformlib)
