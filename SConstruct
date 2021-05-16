@@ -1,9 +1,11 @@
 import enscons
 import enscons.tags
-import toml
 import os
 import os.path
+import platform
 import subprocess
+import sys
+import toml
 
 def get_universal_platform_tag():
     """Return the wheel tag for universal Python 3, but specific platform."""
@@ -84,17 +86,28 @@ generated += \
 generated += \
     env.InstallAs("bchess/data/default.nnue", "build/nn-62ef826d1a6d.nnue")
 
+arch = (platform.machine(), 64 if sys.maxsize > 2**32 else 32)
+stockfish_arch = \
+    "x86-64" if arch in (("x86_64", 64), ("x64", 64)) else \
+    "x86-32" if arch in (("x86_64", 32), ("i686", 32)) else \
+    "ppc-64" if arch in (("ppc64", 64), ("ppc", 64)) else \
+    "ppc-32" if arch in (("ppc", 32),) else \
+    "armv7" if arch in (("armv7l", 32),) else \
+    "armv8" if arch in (("armv8b", 64), ("armv8l", 64)) else \
+    "general-64" if arch[1] == 64 else \
+    "general-32"
+
 generated += \
     env.Command("bchess/data/stockfish", ["build/Stockfish-sf_13.tar.gz"], """
         cd build && \
         tar vxf Stockfish-sf_13.tar.gz && \
         cd Stockfish-sf_13/src && \
         sed -e 's/^net:/net:\\n\\ttrue\\n\\nxnet:/' -i Makefile && \
-        make build ARCH=x86-64 EXTRACXXFLAGS=-DNNUE_EMBEDDING_OFF=1 -j4 && \
+        make build ARCH=$ARCH EXTRACXXFLAGS=-DNNUE_EMBEDDING_OFF=1 -j4 && \
         strip stockfish
         cp build/Stockfish-sf_13/src/stockfish $TARGET
         rm -rf build/Stockfish-sf_13
-    """)
+    """, ARCH=stockfish_arch)
 
 generated += \
     env.Command("bchess/data/lc0", ["build/lc0-0.27.0.tar.gz"], """
