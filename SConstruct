@@ -68,9 +68,18 @@ generated_src += \
 
 generated = []
 
+def build_sqlite(target, source, env):
+    import sqlite3
+    with sqlite3.connect(target[0].get_path()) as db:
+        for src in source:
+            with open(src.get_path(), "r") as f:
+                sql = f.read()
+            db.executescript(sql)
+        db.executescript("reindex;")
+        db.executescript("vacuum;")
+
 generated += \
-    env.Command("bchess/data/openings.sqlite", "openings.sql",
-        "sqlite3 $TARGET '.read $SOURCE' reindex vacuum")
+    env.Command("bchess/data/openings.sqlite", "openings.sql", build_sqlite)
 
 generated += \
     env.InstallAs("bchess/data/default.nnue", "build/nn-62ef826d1a6d.nnue")
