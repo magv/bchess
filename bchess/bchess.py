@@ -20,10 +20,10 @@ import time
 # of running it directly, PYTHONPATH must be set so that all of
 # these files are in it, and come first.
 
-import engine
-import imui
-import ecodb
-import book
+from . import engine
+from . import imui
+from . import ecodb
+from . import book
 
 ### Configuration
 
@@ -277,7 +277,7 @@ class UI0:
         self.ailist = list(config["ai"].values())
 
     def render(self):
-        with im.Center(width=60, height=20):
+        with im.Center(width=60, height=10 + len(self.ailist) + len(self.config["rating_classes"])):
             im.Text("┳┓ ╭─┐┐           ")
             im.Text("┃┃ │  │  ╭─╮╭─┐╭─┐")
             im.Text("┣┻┓│  ├─╮├─╯╰─╮╰─╮")
