@@ -1,7 +1,7 @@
 # BChess
 
 > “I give 98 percent of my mental energy to BChess; others
-> give only 2 percent.” —Bobby Fischer
+> give only 2 percent.” —Bobby Fischer
 
 BChess is a beginner-friendly chess in a console, with batteries
 included.
@@ -16,15 +16,15 @@ by running:
 
 [PyPI]: https://pypi.org/project/bchess/
 
-This will install the `bchess` program into `~/.local/bin`
-folder, and if that folder is in your `$PATH`, then and you
-will be able to run BChess by just typing `bchess`. If not,
-you will still be able to run it via `python3 -m bchess`.
+This will install the `bchess` program into `~/.local/bin` folder,
+and if that folder is in your `$PATH`, then you will be able to
+run BChess by just typing `bchess`. If not, `python3 -m bchess`
+should work regardless.
 
 ## How to play
 
 > “To play for a draw, at any rate with white, is to some
-> degree a crime against BChess.” —Mikhail Tal
+> degree a crime against BChess.” —Mikhail Tal
 
 Start BChess, select your opponent, click on the piece you want
 to move or enter your move in algebraic notation. Try to win.
