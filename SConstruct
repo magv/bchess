@@ -127,7 +127,7 @@ if os.path.exists(".hg") or os.path.exists(".git"):
             "wget -O $TARGET 'https://github.com/LeelaChessZero/lc0/archive/refs/tags/v0.27.0.tar.gz'")
 
     generated_src += \
-        env.Command("bchess/data/nn-62ef826d1a6d.nnue", [],
+        env.Command("bchess/data/default.nnue", [],
             "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-62ef826d1a6d.nnue'")
 
     generated_src += \
