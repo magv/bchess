@@ -6,6 +6,10 @@
 BChess is a beginner-friendly chess in a console, with batteries
 included.
 
+<p align="center">
+ <img src="https://raw.githubusercontent.com/magv/bchess/master/demo.gif" width="339" height="367"/>
+</p>
+
 ## How to install
 
 BChess runs under Python 3.6 or newer on Unix-like machines.

@@ -413,13 +413,13 @@ class UI:
                 raise ValueError("No basis to claim draw now.")
             self.draw = True
         elif move == "undo":
+            if len(self.board.move_stack) < 2:
+                raise ValueError("Undo what?")
             self.board.pop()
             self.board.pop()
-            return
         elif move == "flip":
             self.flip = not self.flip
-            return
-        elif move in ("quit", "exit"):
+        elif move in ("quit", "exit", "resign"):
             exit(0)
         elif move in "help":
             self.help = not self.help
@@ -428,7 +428,8 @@ class UI:
                 self.board.push_uci(move)
             except:
                 self.board.push_san(move)
-        self.save_pgn("/tmp/game.pgn")
+        if self.board.move_stack:
+            self.save_pgn("/tmp/bchess.pgn")
         if not self.board.is_game_over(claim_draw=self.draw):
             if self.eval_ai:
                 self.eval_ai.analyze(self.board, self.eval_ai_update, self.board.fen())
