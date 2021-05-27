@@ -59,8 +59,8 @@ review games, and be guided by a teacher. BChess is about having fun.
 ### Why the text art?
 
 Maximizing the board size on the screen makes playing
-easier. Practice shows that textual piece names (i.e. `KQRBN`)
+easier. Practice shows that textual piece names (i.e. KQRBN)
 are hard to recognize when the square size is 3x6 or larger: they
-get lost in the white space. Unicode symbols (`♚♛♜♝♞`)
+get lost in the white space. Unicode symbols (i.e. ♚♛♜♝♞)
 are small, and can be fairly ugly, depending on what fonts are
 used. Textual art is the only reasonable choice.
