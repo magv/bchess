@@ -1,6 +1,6 @@
 [project]
 name = "bchess"
-version = "0.0.1"
+version = "0.0.2"
 
 author = "Vitaly Magerya"
 classifiers = [
@@ -24,4 +24,4 @@ bchess = "bchess.bchess:main"
 
 [build-system]
 build-backend = "enscons.api"
-requires = ["enscons>=0.26", "toml>=0.1", "meson", "ninja"]
+requires = ["enscons>=0.26", "toml>=0.10", "packaging>=20.5", "meson", "ninja"]
