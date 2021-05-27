@@ -154,6 +154,10 @@ if os.path.exists(".hg") or os.path.exists(".git"):
         env.Command("bchess/data/tinygyal-8.pb.gz", [],
             "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/files/4432261/tinygyal-8.pb.gz'")
 
+    generated_src += \
+        env.Command("bchess/data/meangirl-8.pb.gz", [],
+            "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/releases/download/mean-girl-8/meangirl-8.pb.gz'")
+
     commit = vcs_commit()
     generated_src += env.Textfile(target="bchess/__init__.py", source=[
         f'__version__ = "{pyproject["project"]["version"]}"',
