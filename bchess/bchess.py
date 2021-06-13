@@ -77,6 +77,12 @@ def load_config(*filenames):
             pass
     return conf
 
+def default_config():
+    return config_subs(load_config(
+        config_subs("{data}/bchess.conf"),
+        os.path.expanduser("~/.config/bchess.conf"),
+        os.path.expanduser("~/.bchess.conf")))
+
 ### MISC UI
 
 def FormatText(text, attr=0):
@@ -494,6 +500,7 @@ class UI:
                         self.try_user_move()
                 else:
                     im.VSpace(1)
+                    self.move, chg = im.Input(self.move, prefix="Thinking... ", attr=self.attr_input, align=1)
 
     def ai_update(self, move):
         # The update here must be delayed because:
@@ -503,7 +510,7 @@ class UI:
 
     def eval_ai_update(self, result, fen):
         if isinstance(result, engine.Evaluation):
-            if result.depth >= 2:
+            if result.depth >= 4:
                 self.eval.setdefault(fen, {})
                 self.eval[fen][result.depth] = result
                 im.want_refresh = True
@@ -536,10 +543,7 @@ def config_implement_colors(conf):
     return result
 
 def curses_main(win):
-    config = config_subs(load_config(
-        config_subs("{data}/bchess.conf"),
-        os.path.expanduser("~/.config/bchess.conf"),
-        os.path.expanduser("~/.bchess.conf")))
+    config = default_config()
     curses.curs_set(False)
     curses.start_color()
     curses.use_default_colors()

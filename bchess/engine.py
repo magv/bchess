@@ -3,6 +3,8 @@ import subprocess
 import threading
 import random
 
+from . import book
+
 from collections import namedtuple
 
 Evaluation = namedtuple("Evaluation", "score wdl depth nodes multipv pv")
@@ -38,13 +40,21 @@ def score_winpercent(score):
 def uci_value_fmt(value):
     return ("true" if value else "false") if isinstance(value, bool) else str(value)
 
+def score_of_string(score):
+    if score.startswith("cp "):
+        return Score_CentiPawn(int(score[3:]))
+    if score.startswith("mate "):
+        return Score_Mate(int(score[5:]))
+    raise ValueError("Bad score format: " + repr(score))
+
 class Engine:
-    def __init__(self, exepath, options={}, maxdepth=None, maxtime=None, maxnodes=None):
+    def __init__(self, exepath, options={}, maxdepth=None, maxtime=None, maxnodes=None, evaldb=None):
         self.maxdepth = maxdepth
         self.maxtime = maxtime
         self.maxnodes = maxnodes
         self.exepath = exepath
         self.ucioptions = options
+        self.evaldb = evaldb
         self.quit_requested = False
         self.request = None
         self.sent_requests = []
@@ -75,6 +85,20 @@ class Engine:
         self.quit()
 
     def analyze(self, board, callback, *args):
+        if self.evaldb:
+            evals = self.evaldb(board)
+            if evals:
+                bestmove = None
+                for depth, score, pv in evals:
+                    if pv:
+                        pv = pv.split()
+                        bestmove = pv[0]
+                    else:
+                        pv = []
+                    callback(Evaluation(score_of_string(score), None, depth, None, 1, pv), *args)
+                assert(bestmove is not None)
+                callback(BestMove(bestmove), *args)
+                return
         position = "startpos moves " + " ".join(move.uci() for move in board.move_stack)
         limit = f"nodes {self.maxnodes}" if self.maxnodes is not None else \
                 f"movetime {int(self.maxtime*1000)}" if self.maxtime is not None else \
@@ -214,7 +238,8 @@ def of_spec(spec):
             options=spec["options"],
             maxnodes=spec["limit"].get("maxnodes", None),
             maxdepth=spec["limit"].get("maxdepth", None),
-            maxtime=spec["limit"].get("maxtime", None))
+            maxtime=spec["limit"].get("maxtime", None),
+            evaldb=book.evaldb() if spec.get("eval_book", False) else None)
     if "maxloss" in spec:
         eng = LossyEngine(eng, spec["maxloss"])
     return eng

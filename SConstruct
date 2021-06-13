@@ -41,7 +41,7 @@ def build_sqlite(target, source, env):
         db.executescript("vacuum;")
 
 generated += \
-    env.Command("bchess/data/openings.sqlite", "openings.sql", build_sqlite)
+    env.Command("bchess/data/openings.sqlite", ["openings.sql", "evaluations.sql"], build_sqlite)
 
 arch = (platform.machine(), 64 if sys.maxsize > 2**32 else 32)
 stockfish_arch = \

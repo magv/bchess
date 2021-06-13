@@ -42,6 +42,10 @@ class BookDB:
             return None
         return random.choices(moves, weights=counts)[0]
 
+    def evaluations(self, epd):
+        for depth, score, pv in self.db.execute("select depth,score,pv from evaluations where boardid=(select id from boards where epd=?)", (epd,)):
+            yield depth, score, pv
+
 default = None
 
 def of_spec(spec):
@@ -50,3 +54,7 @@ def of_spec(spec):
     assert default is not None
     rating = spec["rating"]
     return lambda board: default.random_move(board.epd(), rating)
+
+def evaldb():
+    assert default is not None
+    return lambda board: list(default.evaluations(board.epd()))
