@@ -144,9 +144,15 @@ def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv
     black = ""
     material = 0
     marks = {}
-    for i, uci in reversed(list(enumerate(pv[:3]))):
+    marks_color = {}
+    pv = pv[:3]
+    color = len(pv) % 2 == (1 if board.turn else 0)
+    for i, uci in reversed(list(enumerate(pv))):
         marks[ord(uci[0]) - ord("a"), ord(uci[1]) - ord("1")] = chr(ord("1") + i)
         marks[ord(uci[2]) - ord("a"), ord(uci[3]) - ord("1")] = chr(ord("1") + i)
+        marks_color[ord(uci[0]) - ord("a"), ord(uci[1]) - ord("1")] = color
+        marks_color[ord(uci[2]) - ord("a"), ord(uci[3]) - ord("1")] = color
+        color = not color
     for p in reversed(chess.PIECE_TYPES):
         n = len(board.pieces(p, True)) - len(board.pieces(p, False))
         material += piece_material[p] * n
@@ -225,10 +231,12 @@ def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv
                                 self.attr_mv_piece if mv else \
                                 self.attr_piece)[white + 2*(p.color if p else white)]
                         for i, line in enumerate(self.piece_art[p.piece_type if p else 0]):
-                            if i == 2 and (file,rank) in marks:
-                                im.Text(marks[file,rank] + line[1:], attr=attr)
-                            else:
-                                im.Text(line, attr=attr)
+                            im.Text(line, attr=attr)
+                        if (file, rank) in marks:
+                            attr = (self.attr_hi_piece if hi else \
+                                    self.attr_mv_piece if mv else \
+                                    self.attr_piece)[white + 2*marks_color[file, rank]]
+                            im.TextAt(im.curx, im.cury-1, marks[file, rank], attr=attr)
                 # Right frame
                 with im.Cell():
                     if flip:
@@ -370,6 +378,7 @@ class UI:
         self.user_name = os.environ.get("USER", "user")
         self.board = chess.Board()
         self.eval = {}
+        self.eval_maxdepth = {}
         self.aispec = (black_ai, white_ai)
         self.book = (
             book.of_spec(black_ai.get("book", None)) if black_ai else None,
@@ -474,12 +483,12 @@ class UI:
         if self.board.is_check():
             mv_squares.add(self.board.king(self.board.turn))
         with im.Center(width=52, height=26+3-1):
+            evdepth = self.eval_maxdepth.get(self.board.fen(), None)
             ev = self.eval.get(self.board.fen(), None)
-            if self.help and ev:
-                evalbar = [engine.score_winpercent(e.score) for d, e in sorted(ev.items())]
+            if self.help and evdepth and ev:
+                evalbar = [engine.score_winpercent(e.score) for d, e in sorted(ev.items()) if d <= evdepth]
                 evalbar = [min(evalbar[-4:]), 1-max(evalbar[-4:])]
-                ev = max(ev.items(), key=lambda kv: kv[0])[1]
-                ChessBoard(self, self.board, hi_squares, mv_squares, evalbar=evalbar, pv=ev.pv, flip=self.flip)
+                ChessBoard(self, self.board, hi_squares, mv_squares, evalbar=evalbar, pv=ev[evdepth].pv, flip=self.flip)
             else:
                 ChessBoard(self, self.board, hi_squares, mv_squares, flip=self.flip)
             if self.board.is_game_over(claim_draw=self.draw):
@@ -513,7 +522,12 @@ class UI:
             if result.depth >= 4:
                 self.eval.setdefault(fen, {})
                 self.eval[fen][result.depth] = result
+                if result.depth - 1 in self.eval[fen]:
+                    self.eval_maxdepth[fen] = result.depth - 1
                 im.want_refresh = True
+        elif isinstance(result, engine.BestMove):
+            if fen in self.eval:
+                self.eval_maxdepth[fen] = max(self.eval[fen].keys())
 
 ### MAIN
 

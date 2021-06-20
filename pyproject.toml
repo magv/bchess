@@ -1,6 +1,6 @@
 [project]
 name = "bchess"
-version = "0.0.4"
+version = "0.0.5"
 
 author = "Vitaly Magerya"
 classifiers = [
@@ -13,7 +13,7 @@ classifiers = [
     "Topic :: Games/Entertainment :: Board Games"
 ]
 dependencies = ["python-chess>=0.31"]
-description = "Beginner-friendly chess in a console, with batteries included."
+description = "Beginner-friendly offline chess in a console, with batteries included."
 license = "GPLv3+"
 readme = "README.md"
 requires-python = ">=3.6"
