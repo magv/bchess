@@ -136,7 +136,6 @@ def highlight_san_move(text, board=None):
     if not x and not f2 and not r2: ss |= squareset(pc, None, None, None, f1, r1)
     return ss
 
-piece_starting_count = [None, 8, 2, 2, 2, 1, 1]
 piece_material = [None, 1, 3, 3, 5, 9, 100]
 
 def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv=()):
@@ -267,6 +266,22 @@ def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv
                     im.Text("      " if flip else f"  {name:c}   ", attr=self.attr_border)
             with im.Cell(): im.Text("  ", attr=self.attr_border)
 
+def MoveList(moves, maxheight=24, attr=0):
+    n = (len(moves) + 1)//2
+    c1 = [f"{i+1}." for i in range(n)]
+    c2 = [str(moves[i*2]) for i in range(n)]
+    c3 = [str(moves[i*2+1]) if i*2+1 < len(moves) else "" for i in range(n)]
+    w1 = max(map(len, c1), default=4)
+    w2 = max(map(len, c2), default=7)
+    w3 = max(map(len, c3), default=7)
+    abc = list(zip(c1, c2, c3))[-maxheight:]
+    with im.Table(w1, w2, w3, margin=1):
+        for a, b, c in abc:
+            with im.Row():
+                with im.Cell(): im.Text(a, attr=attr)
+                with im.Cell(): im.Text(b, attr=attr)
+                with im.Cell(): im.Text(c, attr=attr)
+
 class UI0:
     def __init__(self, config):
         self.config = config
@@ -366,6 +381,7 @@ class UI:
         self.attr_subtitle = config["style"]["subtitle"]
         self.attr_border = config["style"]["border"]
         self.attr_input = config["style"]["input"]
+        self.attr_moves = config["style"]["moves"]
         self.attr_eval_w = config["style"]["eval_win"]
         self.attr_eval_d = config["style"]["eval_draw"]
         self.attr_eval_l = config["style"]["eval_loss"]
@@ -377,6 +393,7 @@ class UI:
         self.pgn_filename = config["pgn_filename"]
         self.user_name = os.environ.get("USER", "user")
         self.board = chess.Board()
+        self.san_moves = []
         self.eval = {}
         self.eval_maxdepth = {}
         self.aispec = (black_ai, white_ai)
@@ -440,9 +457,12 @@ class UI:
             self.help = not self.help
         else:
             try:
-                self.board.push_uci(move)
+                move = self.board.parse_uci(move)
             except:
-                self.board.push_san(move)
+                move = self.board.parse_san(move)
+            san = self.board.san(move)
+            self.board.push(move)
+            self.san_moves.append(san)
         if self.board.move_stack:
             self.save_pgn("/tmp/bchess.pgn")
         if not self.board.is_game_over(claim_draw=self.draw):
@@ -482,34 +502,40 @@ class UI:
             mv_squares.add(m.to_square)
         if self.board.is_check():
             mv_squares.add(self.board.king(self.board.turn))
-        with im.Center(width=52, height=26+3-1):
+        with im.Center(width=52+1+20, height=26+3-1):
             evdepth = self.eval_maxdepth.get(self.board.fen(), None)
             ev = self.eval.get(self.board.fen(), None)
-            if self.help and evdepth and ev:
-                evalbar = [engine.score_winpercent(e.score) for d, e in sorted(ev.items()) if d <= evdepth]
-                evalbar = [min(evalbar[-4:]), 1-max(evalbar[-4:])]
-                ChessBoard(self, self.board, hi_squares, mv_squares, evalbar=evalbar, pv=ev[evdepth].pv, flip=self.flip)
-            else:
-                ChessBoard(self, self.board, hi_squares, mv_squares, flip=self.flip)
-            if self.board.is_game_over(claim_draw=self.draw):
-                im.Text(self.board.result(claim_draw=self.draw), attr=self.attr_input, align=1)
-            else:
-                # Move input field
-                if self.ai[self.board.turn] is None:
-                    if self.board.can_claim_fifty_moves():
-                        im.Text("You can now claim draw by the fifty-move rule.", align=1)
-                    if self.board.can_claim_threefold_repetition():
-                        im.Text("You can now claim draw by threefold repetition.", align=1)
-                    im.VSpace(1)
-                    prefix = f"Move {self.board.fullmove_number}. " if self.board.turn else \
-                             f"Move {self.board.fullmove_number}... "
-                    self.move, chg = im.Input(self.move, prefix=prefix, attr=self.attr_input, align=1)
-                    if chg: im.want_refresh = True
-                    if "\n" in self.move:
-                        self.try_user_move()
-                else:
-                    im.VSpace(1)
-                    self.move, chg = im.Input(self.move, prefix="Thinking... ", attr=self.attr_input, align=1)
+            with im.Table(52, 20, margin=1):
+                with im.Row():
+                    with im.Cell():
+                        if self.help and evdepth and ev:
+                            evalbar = [engine.score_winpercent(e.score) for d, e in sorted(ev.items()) if d <= evdepth]
+                            evalbar = [min(evalbar[-4:]), 1-max(evalbar[-4:])]
+                            ChessBoard(self, self.board, hi_squares, mv_squares, evalbar=evalbar, pv=ev[evdepth].pv, flip=self.flip)
+                        else:
+                            ChessBoard(self, self.board, hi_squares, mv_squares, flip=self.flip)
+                        if self.board.is_game_over(claim_draw=self.draw):
+                            im.Text(self.board.result(claim_draw=self.draw), attr=self.attr_input, align=1)
+                        else:
+                            # Move input field
+                            if self.ai[self.board.turn] is None:
+                                if self.board.can_claim_fifty_moves():
+                                    im.Text("You can now claim draw by the fifty-move rule.", align=1)
+                                if self.board.can_claim_threefold_repetition():
+                                    im.Text("You can now claim draw by threefold repetition.", align=1)
+                                im.VSpace(1)
+                                prefix = f"Move {self.board.fullmove_number}. " if self.board.turn else \
+                                         f"Move {self.board.fullmove_number}... "
+                                self.move, chg = im.Input(self.move, prefix=prefix, attr=self.attr_input, align=1)
+                                if chg: im.want_refresh = True
+                                if "\n" in self.move:
+                                    self.try_user_move()
+                            else:
+                                im.VSpace(1)
+                                self.move, chg = im.Input(self.move, prefix="Thinking... ", attr=self.attr_input, align=1)
+                    with im.Cell():
+                        im.VSpace(3)
+                        MoveList(self.san_moves, maxheight=8*3, attr=self.attr_moves)
 
     def ai_update(self, move):
         # The update here must be delayed because:
