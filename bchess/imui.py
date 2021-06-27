@@ -351,7 +351,7 @@ class IM:
         of times it was clicked or pressed.
         """
         focus = self.cycle_focus(id)
-        lines = text.splitlines()
+        lines = text.splitlines() or [""]
         x, y, w, h = self.curx, self.cury, max(len(line) for line in lines), len(lines)
         hit = self.Key(key, id=id) + self.MouseClick(x, y, w, h)
         if hit: focus = self.focus(id)
@@ -361,6 +361,10 @@ class IM:
 
     @contextmanager
     def Table(self, *widths, margin=0):
+        """
+        A table with fixed column widths. Use Row() immediately
+        inside, and then Cell().
+        """
         save = self.table_rowy, self.table_maxy, self.table_col_minx, self.table_col_maxx, self.table_idx
         minx, maxx = self.minx, self.maxx
         colw = [w if type(w) is int else w[0] for w in widths]
