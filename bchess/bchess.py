@@ -455,6 +455,8 @@ class UI:
                 raise ValueError("Undo what?")
             self.board.pop()
             self.board.pop()
+            self.san_moves.pop()
+            self.san_moves.pop()
         elif move == "flip":
             self.flip = not self.flip
         elif move in ("quit", "exit", "resign"):
