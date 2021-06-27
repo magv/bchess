@@ -225,7 +225,7 @@ def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv
                             im.want_refresh = True
                         hi = chess.square(file, rank) in hi_squares
                         mv = chess.square(file, rank) in mv_squares
-                        p = self.board.piece_at(chess.square(file, rank))
+                        p = board.piece_at(chess.square(file, rank))
                         attr = (self.attr_hi_piece if hi else \
                                 self.attr_mv_piece if mv else \
                                 self.attr_piece)[white + 2*(p.color if p else white)]
@@ -266,7 +266,7 @@ def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv
                     im.Text("      " if flip else f"  {name:c}   ", attr=self.attr_border)
             with im.Cell(): im.Text("  ", attr=self.attr_border)
 
-def MoveList(moves, maxheight=24, attr=0):
+def MoveList(self, moves, hi=None, maxheight=24, attr=0, hi_attr=0):
     n = (len(moves) + 1)//2
     c1 = [f"{i+1}." for i in range(n)]
     c2 = [str(moves[i*2]) for i in range(n)]
@@ -274,13 +274,17 @@ def MoveList(moves, maxheight=24, attr=0):
     w1 = max(map(len, c1), default=4)
     w2 = max(map(len, c2), default=7)
     w3 = max(map(len, c3), default=7)
-    abc = list(zip(c1, c2, c3))[-maxheight:]
+    iabc = list(zip(range(n), c1, c2, c3))[-maxheight:]
     with im.Table(w1, w2, w3, margin=1):
-        for a, b, c in abc:
+        for i, a, b, c in iabc:
             with im.Row():
                 with im.Cell(): im.Text(a, attr=attr)
-                with im.Cell(): im.Text(b, attr=attr)
-                with im.Cell(): im.Text(c, attr=attr)
+                with im.Cell():
+                    if im.Button(b, attr=hi_attr if 2*i + 1 == hi else attr):
+                        self.rewind(2*i + 1)
+                with im.Cell():
+                    if im.Button(c, attr=hi_attr if 2*i + 2 == hi else attr):
+                        self.rewind(2*i + 2)
 
 class UI0:
     def __init__(self, config):
@@ -381,7 +385,8 @@ class UI:
         self.attr_subtitle = config["style"]["subtitle"]
         self.attr_border = config["style"]["border"]
         self.attr_input = config["style"]["input"]
-        self.attr_moves = config["style"]["moves"]
+        self.attr_move = config["style"]["move"]
+        self.attr_move_hi = config["style"]["move_hi"]
         self.attr_eval_w = config["style"]["eval_win"]
         self.attr_eval_d = config["style"]["eval_draw"]
         self.attr_eval_l = config["style"]["eval_loss"]
@@ -393,6 +398,7 @@ class UI:
         self.pgn_filename = config["pgn_filename"]
         self.user_name = os.environ.get("USER", "user")
         self.board = chess.Board()
+        self.move_index = None
         self.san_moves = []
         self.eval = {}
         self.eval_maxdepth = {}
@@ -494,26 +500,31 @@ class UI:
             pass
 
     def render(self):
-        hi_squares = highlight_san_move(self.move, self.board)
+        board = self.board
+        if self.move_index is not None:
+            board = board.copy()
+            while len(board.move_stack) > self.move_index:
+                board.pop()
+        hi_squares = highlight_san_move(self.move, board)
         mv_squares = chess.SquareSet()
-        if self.board.move_stack:
-            m = self.board.move_stack[-1]
+        if board.move_stack:
+            m = board.move_stack[-1]
             mv_squares.add(m.from_square)
             mv_squares.add(m.to_square)
-        if self.board.is_check():
-            mv_squares.add(self.board.king(self.board.turn))
+        if board.is_check():
+            mv_squares.add(board.king(board.turn))
         with im.Center(width=52+1+20, height=26+3-1):
-            evdepth = self.eval_maxdepth.get(self.board.fen(), None)
-            ev = self.eval.get(self.board.fen(), None)
+            evdepth = self.eval_maxdepth.get(board.fen(), None)
+            ev = self.eval.get(board.fen(), None)
             with im.Table(52, 20, margin=1):
                 with im.Row():
                     with im.Cell():
                         if self.help and evdepth and ev:
                             evalbar = [engine.score_winpercent(e.score) for d, e in sorted(ev.items()) if d <= evdepth]
                             evalbar = [min(evalbar[-4:]), 1-max(evalbar[-4:])]
-                            ChessBoard(self, self.board, hi_squares, mv_squares, evalbar=evalbar, pv=ev[evdepth].pv, flip=self.flip)
+                            ChessBoard(self, board, hi_squares, mv_squares, evalbar=evalbar, pv=ev[evdepth].pv, flip=self.flip)
                         else:
-                            ChessBoard(self, self.board, hi_squares, mv_squares, flip=self.flip)
+                            ChessBoard(self, board, hi_squares, mv_squares, flip=self.flip)
                         if self.board.is_game_over(claim_draw=self.draw):
                             im.Text(self.board.result(claim_draw=self.draw), attr=self.attr_input, align=1)
                         else:
@@ -535,7 +546,14 @@ class UI:
                                 self.move, chg = im.Input(self.move, prefix="Thinking... ", attr=self.attr_input, align=1)
                     with im.Cell():
                         im.VSpace(3)
-                        MoveList(self.san_moves, maxheight=8*3, attr=self.attr_moves)
+                        moves = self.san_moves
+                        if not self.board.is_game_over(claim_draw=self.draw):
+                            moves = moves + ["??" if self.ai[self.board.turn] is None else ".."]
+                        MoveList(self, moves, hi=self.move_index, maxheight=8*3, attr=self.attr_move, hi_attr=self.attr_move_hi)
+
+    def rewind(self, move_index):
+        self.move_index = move_index if move_index < len(self.board.move_stack) else None
+        im.want_refresh = True
 
     def ai_update(self, move):
         # The update here must be delayed because:
