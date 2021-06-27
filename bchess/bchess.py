@@ -271,9 +271,9 @@ def MoveList(self, moves, hi=None, maxheight=24, attr=0, hi_attr=0):
     c1 = [f"{i+1}." for i in range(n)]
     c2 = [str(moves[i*2]) for i in range(n)]
     c3 = [str(moves[i*2+1]) if i*2+1 < len(moves) else "" for i in range(n)]
-    w1 = max(map(len, c1), default=4)
-    w2 = max(map(len, c2), default=7)
-    w3 = max(map(len, c3), default=7)
+    w1 = max(3, max(map(len, c1), default=4))
+    w2 = max(4, max(map(len, c2), default=7))
+    w3 = max(4, max(map(len, c3), default=7))
     iabc = list(zip(range(n), c1, c2, c3))[-maxheight:]
     with im.Table(w1, w2, w3, margin=1):
         for i, a, b, c in iabc:
@@ -529,6 +529,11 @@ class UI:
                             ChessBoard(self, board, hi_squares, mv_squares, flip=self.flip)
                         if self.board.is_game_over(claim_draw=self.draw):
                             im.Text(self.board.result(claim_draw=self.draw), attr=self.attr_input, align=1)
+                            im.VSpace(1)
+                            self.move, chg = im.Input(self.move, prefix="Game over. ", attr=self.attr_input, align=1)
+                            if chg: im.want_refresh = True
+                            if "\n" in self.move:
+                                self.try_user_move()
                         else:
                             # Move input field
                             if self.ai[self.board.turn] is None:
@@ -546,6 +551,7 @@ class UI:
                             else:
                                 im.VSpace(1)
                                 self.move, chg = im.Input(self.move, prefix="Thinking... ", attr=self.attr_input, align=1)
+                                if chg: im.want_refresh = True
                     with im.Cell():
                         im.VSpace(3)
                         moves = self.san_moves
