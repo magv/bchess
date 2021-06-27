@@ -413,6 +413,8 @@ class UI:
         self.draw = False
         self.pgn_root = chess.pgn.Game()
         self.pgn = self.pgn_root
+        if self.eval_ai:
+            self.eval_ai.analyze(self.board, self.eval_ai_update, self.board.fen())
         self.prepare_ai_move()
 
     def save_pgn(self, filename):
