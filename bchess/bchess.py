@@ -504,6 +504,10 @@ class UI:
             pass
 
     def render(self):
+        n = im.Key(curses.KEY_RIGHT) - im.Key(curses.KEY_LEFT)
+        if n != 0:
+            self.rewind(self.move_index + n if self.move_index is not None else
+                len(self.board.move_stack) + n)
         board = self.board
         if self.move_index is not None:
             board = board.copy()
@@ -562,7 +566,7 @@ class UI:
                         MoveList(self, moves, hi=self.move_index, maxheight=8*3, attr=self.attr_move, hi_attr=self.attr_move_hi)
 
     def rewind(self, move_index):
-        self.move_index = move_index if move_index < len(self.board.move_stack) else None
+        self.move_index = max(move_index, 0) if move_index < len(self.board.move_stack) else None
         im.want_refresh = True
 
     def ai_update(self, move):
