@@ -55,15 +55,15 @@ stockfish_arch = \
     "general-32"
 
 generated += \
-    env.Command("bchess/data/stockfish", ["build/Stockfish-sf_13.tar.gz"], """
+    env.Command("bchess/data/stockfish", ["build/Stockfish-sf_14.tar.gz"], """
         cd build && \
-        tar vxf Stockfish-sf_13.tar.gz && \
-        cd Stockfish-sf_13/src && \
+        tar vxf Stockfish-sf_14.tar.gz && \
+        cd Stockfish-sf_14/src && \
         sed -e 's/^net:/net:\\n\\ttrue\\n\\nxnet:/' -i Makefile && \
         make build ARCH=$ARCH EXTRACXXFLAGS=-DNNUE_EMBEDDING_OFF=1 -j4 && \
         strip stockfish
-        cp build/Stockfish-sf_13/src/stockfish $TARGET
-        rm -rf build/Stockfish-sf_13
+        cp build/Stockfish-sf_14/src/stockfish $TARGET
+        rm -rf build/Stockfish-sf_14
     """, ARCH=stockfish_arch)
 
 generated += \
@@ -119,8 +119,8 @@ if os.path.exists(".hg") or os.path.exists(".git"):
     generated_src = []
 
     generated_src += \
-        env.Command("build/Stockfish-sf_13.tar.gz", [],
-            "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_13.tar.gz'")
+        env.Command("build/Stockfish-sf_14.tar.gz", [],
+            "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_14.tar.gz'")
 
     generated_src += \
         env.Command("build/lc0-0.27.0.tar.gz", [],
@@ -128,7 +128,7 @@ if os.path.exists(".hg") or os.path.exists(".git"):
 
     generated_src += \
         env.Command("bchess/data/default.nnue", [],
-            "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-62ef826d1a6d.nnue'")
+            "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-3475407dc199.nnue'")
 
     generated_src += \
         env.Command("bchess/data/maia-1100.pb.gz", [],
