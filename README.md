@@ -35,7 +35,7 @@ by first optionally upgrading your PIP:
 
 and then running:
 
-    python3 -m pip install --user bchess
+    python3 -m pip install --user --upgrade bchess
 
 [Python]: https://www.python.org/
 [PyPI]: https://pypi.org/project/bchess/
