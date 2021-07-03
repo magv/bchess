@@ -66,13 +66,17 @@ generated += \
         rm -rf build/Stockfish-sf_14
     """, ARCH=stockfish_arch)
 
+lczero_common_tag = "00fd892e648160c294346c87449126d9bad80a16"
+
 generated += \
-    env.Command("bchess/data/lc0", ["build/lc0-0.27.0.tar.gz"], """
+    env.Command("bchess/data/lc0", ["build/lc0-0.27.0.tar.gz", "build/lczero-common.tar.gz"], """
         which meson
         which ninja
         cd build && \
         tar vxf lc0-0.27.0.tar.gz && \
+        tar vxf lczero-common.tar.gz && \
         cd lc0-0.27.0 && \
+        cp -a ../lczero-common-${LCZERO_COMMON_TAG}/. libs/lczero-common && \
         ./build.sh minsize \
             --auto-features disabled \
             --default-library static \
@@ -96,7 +100,7 @@ generated += \
             -Dnvcc_ccbin=false && \
         strip build/minsize/lc0
         cp build/lc0-0.27.0/build/minsize/lc0 $TARGET
-    """)
+    """, LCZERO_COMMON_TAG=lczero_common_tag)
 
 File("PKG-INFO")
 #source = DirectoryFiles("bchess") + File(["bchess_data/__init__.py"])
@@ -121,6 +125,11 @@ if os.path.exists(".hg") or os.path.exists(".git"):
     generated_src += \
         env.Command("build/Stockfish-sf_14.tar.gz", [],
             "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_14.tar.gz'")
+
+    generated_src += \
+        env.Command("build/lczero-common.tar.gz", [],
+            "wget -O $TARGET 'https://github.com/LeelaChessZero/lczero-common/archive/${LCZERO_COMMON_TAG}.tar.gz'",
+            LCZERO_COMMON_TAG=lczero_common_tag)
 
     generated_src += \
         env.Command("build/lc0-0.27.0.tar.gz", [],
