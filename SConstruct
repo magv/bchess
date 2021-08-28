@@ -59,7 +59,7 @@ generated += \
         cd build && \
         tar vxf Stockfish-sf_14.tar.gz && \
         cd Stockfish-sf_14/src && \
-        sed -e 's/^net:/net:\\n\\ttrue\\n\\nxnet:/' -i Makefile && \
+        sed -e 's/^net:/net:\\n\\ttrue\\n\\nxnet:/' -i.bak Makefile && \
         make build ARCH=$ARCH EXTRACXXFLAGS=-DNNUE_EMBEDDING_OFF=1 -j4 && \
         strip stockfish
         cp build/Stockfish-sf_14/src/stockfish $TARGET
