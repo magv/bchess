@@ -66,17 +66,20 @@ generated += \
         rm -rf build/Stockfish-sf_14
     """, ARCH=stockfish_arch)
 
-lczero_common_tag = "00fd892e648160c294346c87449126d9bad80a16"
+lczero_common_tag = "5680c5fad9f3b52288d67f738b272fd09de5ee0b"
 
 generated += \
-    env.Command("bchess/data/lc0", ["build/lc0-0.27.0.tar.gz", "build/lczero-common.tar.gz"], """
+    env.Command("bchess/data/lc0", ["build/lc0-0.28.0.tar.gz", "build/lczero-common.tar.gz"], """
         which meson
         which ninja
         cd build && \
-        tar vxf lc0-0.27.0.tar.gz && \
+        tar vxf lc0-0.28.0.tar.gz && \
         tar vxf lczero-common.tar.gz && \
-        cd lc0-0.27.0 && \
+        cd lc0-0.28.0 && \
         cp -a ../lczero-common-${LCZERO_COMMON_TAG}/. libs/lczero-common && \
+        cp -a ../lc0deps subprojects/packagefiles && \
+        sed -i.bak -E '/^[a-z]*_url/d' subprojects/*wrap && \
+        sed -i.bak -e 's/>=0.52/>=0.55/' -e "s/'eigen3'/'eigen3-xxx'/" -e "s/'zlib'/'zlib-xxx'/" meson.build && \
         ./build.sh minsize \
             --auto-features disabled \
             --default-library static \
@@ -99,7 +102,7 @@ generated += \
             -Dembed=false \
             -Dnvcc_ccbin=false && \
         strip build/minsize/lc0
-        cp build/lc0-0.27.0/build/minsize/lc0 $TARGET
+        cp build/lc0-0.28.0/build/minsize/lc0 $TARGET
     """, LCZERO_COMMON_TAG=lczero_common_tag)
 
 File("PKG-INFO")
@@ -122,50 +125,51 @@ def vcs_commit():
 if os.path.exists(".hg") or os.path.exists(".git"):
     generated_src = []
 
-    generated_src += \
-        env.Command("build/Stockfish-sf_14.tar.gz", [],
-            "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_14.tar.gz'")
+    generated_src += env.Command("build/Stockfish-sf_14.tar.gz", [],
+        "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_14.tar.gz'")
 
-    generated_src += \
-        env.Command("build/lczero-common.tar.gz", [],
-            "wget -O $TARGET 'https://github.com/LeelaChessZero/lczero-common/archive/${LCZERO_COMMON_TAG}.tar.gz'",
-            LCZERO_COMMON_TAG=lczero_common_tag)
+    generated_src += env.Command("build/lczero-common.tar.gz", [],
+        "wget -O $TARGET 'https://github.com/LeelaChessZero/lczero-common/archive/${LCZERO_COMMON_TAG}.tar.gz'",
+        LCZERO_COMMON_TAG=lczero_common_tag)
 
-    generated_src += \
-        env.Command("build/lc0-0.27.0.tar.gz", [],
-            "wget -O $TARGET 'https://github.com/LeelaChessZero/lc0/archive/refs/tags/v0.27.0.tar.gz'")
+    generated_src += env.Command("build/lc0-0.28.0.tar.gz", [],
+        "wget -O $TARGET 'https://github.com/LeelaChessZero/lc0/archive/refs/tags/v0.28.0.tar.gz'")
 
-    generated_src += \
-        env.Command("bchess/data/default.nnue", [],
-            "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-3475407dc199.nnue'")
+    generated_src += env.Command("build/lc0deps/eigen-3.3.7.tar.bz2", [],
+        "wget -O $TARGET 'https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2'")
 
-    generated_src += \
-        env.Command("bchess/data/maia-1100.pb.gz", [],
-            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1100.pb.gz'")
+    generated_src += env.Command("build/lc0deps/eigen-3.3.7-1u-wrap.zip", [],
+        "wget -O $TARGET 'https://github.com/borg323/eigen/files/5124100/eigen-3.3.7-1u-wrap.zip'")
 
-    generated_src += \
-        env.Command("bchess/data/maia-1300.pb.gz", [],
-            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1300.pb.gz'")
+    generated_src += env.Command("build/lc0deps/zlib-1.2.11.tar.gz", [],
+        "wget -O $TARGET 'http://zlib.net/fossils/zlib-1.2.11.tar.gz'")
 
-    generated_src += \
-        env.Command("bchess/data/maia-1500.pb.gz", [],
-            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1500.pb.gz'")
+    generated_src += env.Command("build/lc0deps/zlib-1.2.11-4-wrap.zip", [],
+        "wget -O $TARGET 'https://wrapdb.mesonbuild.com/v1/projects/zlib/1.2.11/4/get_zip'")
 
-    generated_src += \
-        env.Command("bchess/data/maia-1700.pb.gz", [],
-            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1700.pb.gz'")
+    generated_src += env.Command("bchess/data/default.nnue", [],
+        "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-3475407dc199.nnue'")
 
-    generated_src += \
-        env.Command("bchess/data/maia-1900.pb.gz", [],
-            "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1900.pb.gz'")
+    generated_src += env.Command("bchess/data/maia-1100.pb.gz", [],
+        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1100.pb.gz'")
 
-    generated_src += \
-        env.Command("bchess/data/tinygyal-8.pb.gz", [],
-            "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/files/4432261/tinygyal-8.pb.gz'")
+    generated_src += env.Command("bchess/data/maia-1300.pb.gz", [],
+        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1300.pb.gz'")
 
-    generated_src += \
-        env.Command("bchess/data/meangirl-8.pb.gz", [],
-            "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/releases/download/mean-girl-8/meangirl-8.pb.gz'")
+    generated_src += env.Command("bchess/data/maia-1500.pb.gz", [],
+        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1500.pb.gz'")
+
+    generated_src += env.Command("bchess/data/maia-1700.pb.gz", [],
+        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1700.pb.gz'")
+
+    generated_src += env.Command("bchess/data/maia-1900.pb.gz", [],
+        "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1900.pb.gz'")
+
+    generated_src += env.Command("bchess/data/tinygyal-8.pb.gz", [],
+        "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/files/4432261/tinygyal-8.pb.gz'")
+
+    generated_src += env.Command("bchess/data/meangirl-8.pb.gz", [],
+        "wget -O $TARGET 'https://github.com/dkappe/leela-chess-weights/releases/download/mean-girl-8/meangirl-8.pb.gz'")
 
     commit = vcs_commit()
     generated_src += env.Textfile(target="bchess/__init__.py", source=[
