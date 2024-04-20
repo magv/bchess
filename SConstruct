@@ -55,15 +55,15 @@ stockfish_arch = \
     "general-32"
 
 generated += \
-    env.Command("bchess/data/stockfish", ["build/Stockfish-sf_14.tar.gz"], """
+    env.Command("bchess/data/stockfish", ["build/Stockfish-sf_16.1.tar.gz"], """
         cd build && \
-        tar vxf Stockfish-sf_14.tar.gz && \
-        cd Stockfish-sf_14/src && \
+        tar vxf Stockfish-sf_16.1.tar.gz && \
+        cd Stockfish-sf_16.1/src && \
         sed -e 's/^net:/net:\\n\\ttrue\\n\\nxnet:/' -i.bak Makefile && \
         make build ARCH=$ARCH EXTRACXXFLAGS=-DNNUE_EMBEDDING_OFF=1 -j4 && \
         strip stockfish
-        cp build/Stockfish-sf_14/src/stockfish $TARGET
-        rm -rf build/Stockfish-sf_14
+        cp build/Stockfish-sf_16.1/src/stockfish $TARGET
+        rm -rf build/Stockfish-sf_16.1
     """, ARCH=stockfish_arch)
 
 lczero_common_tag = "5680c5fad9f3b52288d67f738b272fd09de5ee0b"
@@ -125,8 +125,8 @@ def vcs_commit():
 if os.path.exists(".hg") or os.path.exists(".git"):
     generated_src = []
 
-    generated_src += env.Command("build/Stockfish-sf_14.tar.gz", [],
-        "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_14.tar.gz'")
+    generated_src += env.Command("build/Stockfish-sf_16.1.tar.gz", [],
+        "wget -O $TARGET 'https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_16.1.tar.gz'")
 
     generated_src += env.Command("build/lczero-common.tar.gz", [],
         "wget -O $TARGET 'https://github.com/LeelaChessZero/lczero-common/archive/${LCZERO_COMMON_TAG}.tar.gz'",
@@ -148,7 +148,10 @@ if os.path.exists(".hg") or os.path.exists(".git"):
         "wget -O $TARGET 'https://wrapdb.mesonbuild.com/v1/projects/zlib/1.2.11/4/get_zip'")
 
     generated_src += env.Command("bchess/data/default.nnue", [],
-        "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-3475407dc199.nnue'")
+        "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-b1a57edbea57.nnue'")
+
+    generated_src += env.Command("bchess/data/default.small.nnue", [],
+        "wget -O $TARGET 'https://tests.stockfishchess.org/api/nn/nn-baff1ede1f90.nnue'")
 
     generated_src += env.Command("bchess/data/maia-1100.pb.gz", [],
         "wget -O $TARGET 'https://github.com/CSSLab/maia-chess/releases/download/v1.0/maia-1100.pb.gz'")
