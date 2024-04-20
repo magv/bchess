@@ -8,7 +8,7 @@ batteries included. It contains opponents of various skill levels,
 from a beginner to an expert, all to keep you from getting bored.
 
 <p align="center">
- <img src="https://raw.githubusercontent.com/magv/bchess/master/demo.gif" width="339" height="367"/>
+ <img src="https://raw.githubusercontent.com/magv/bchess/master/demo.gif" width="334" height="426"/>
 </p>
 
 ## How to play
@@ -44,6 +44,39 @@ This will install the `bchess` program into `~/.local/bin`
 folder, and if that folder is in your `$PATH`, then you will be
 able to play by just typing `bchess` in your terminal. If not,
 use `python3 -m bchess`.
+
+## Why
+
+> “I have always a slight feeling of pity for the man who has
+> no knowledge of BChess.” —Siegbert Tarrasch
+
+One problem with computer chess is that the engines are either
+impossibly strong, or give up without a fight. Neither is fun
+to play against, and there is little in between.
+
+BChess fills in the middle ground by offering computer opponents
+of different strengths and play styles. These opponents are based
+on work done by other people. They deserve all the credit.
+
+- [Maia], a human-like neural network for the Leela Chess Zero engine,
+  developed by a team from University of Toronto, Cornell,
+  and Microsoft Research;
+- [Tiny Gyal] and [Mean Girl], neural networks of the same kind
+  trained on a mixture of human and computer play by [Dietrich Kappe];
+- [Stockfish], the strongest classical chess engine around;
+- [Leela Chess Zero], the strongest [MCTS]-based chess engine around.
+
+BChess has also collected, and will use against you, millions of
+opening moves played by humans of different strength on Lichess.
+All to keep you from getting bored.
+
+[maia]: https://maiachess.com/
+[leela chess zero]: https://lczero.org/
+[tiny gyal]: https://github.com/dkappe/leela-chess-weights/releases/tag/tiny-gyal-8
+[mean girl]: https://github.com/dkappe/leela-chess-weights/releases/tag/mean-girl-8
+[dietrich kappe]: https://github.com/dkappe/leela-chess-weights
+[stockfish]: https://stockfishchess.org/
+[mcts]: https://en.wikipedia.org/wiki/Monte_Carlo_tree_search
 
 ## Q&A
 
