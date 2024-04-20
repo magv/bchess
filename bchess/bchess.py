@@ -212,7 +212,7 @@ def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv
                         im.Text("  ", attr=self.attr_border)
                 # Pieces
                 for file in range(7, -1, -1) if flip else range(8):
-                    white = (rank ^ file) & 1
+                    light = (rank ^ file) & 1
                     with im.Cell():
                         if self.ai[self.board.turn] is None and \
                                 not self.board.is_game_over(claim_draw=self.draw) and \
@@ -228,13 +228,13 @@ def ChessBoard(self, board, hi_squares, mv_squares, flip=False, evalbar=None, pv
                         p = board.piece_at(chess.square(file, rank))
                         attr = (self.attr_hi_piece if hi else \
                                 self.attr_mv_piece if mv else \
-                                self.attr_piece)[white + 2*(p.color if p else white)]
+                                self.attr_piece)[light + 2*(p.color if p else light)]
                         for i, line in enumerate(self.piece_art[p.piece_type if p else 0]):
                             im.Text(line, attr=attr)
                         if (file, rank) in marks:
                             attr = (self.attr_hi_piece if hi else \
                                     self.attr_mv_piece if mv else \
-                                    self.attr_piece)[white + 2*marks_color[file, rank]]
+                                    self.attr_piece)[light + 2*marks_color[file, rank]]
                             im.TextAt(im.curx, im.cury-1, marks[file, rank], attr=attr)
                 # Right frame
                 with im.Cell():
@@ -293,16 +293,16 @@ class UI0:
         self.piece_art = [[art[0][i:i+6], art[1][i:i+6], art[2][i:i+6]] for i in range(0,8*6,6)]
         self.attr_piece = [
             # piece w/b -- square l/d
-            config["style"]["square_wl"],  # 0b00
-            config["style"]["square_wd"],  # 0b01
-            config["style"]["square_bl"],  # 0b10
-            config["style"]["square_bd"]   # 0b11
+            config["style"]["square_bd"],  # 0b00
+            config["style"]["square_bl"],  # 0b01
+            config["style"]["square_wd"],  # 0b10
+            config["style"]["square_wl"]   # 0b11
         ]
         self.attr_hi_piece = [
-            config["style"]["square_hi_wl"], # 0b00
-            config["style"]["square_hi_wd"], # 0b01
-            config["style"]["square_hi_bl"], # 0b10
-            config["style"]["square_hi_bd"]  # 0b11
+            config["style"]["square_hi_bd"], # 0b00
+            config["style"]["square_hi_bl"], # 0b01
+            config["style"]["square_hi_wd"], # 0b10
+            config["style"]["square_hi_wl"]  # 0b11
         ]
         self.title = "??"
         self.ai_index = imui.Ref(0)
@@ -364,22 +364,22 @@ class UI:
     def __init__(self, white_ai, black_ai, config):
         self.attr_piece = [
             # piece w/b -- square l/d
-            config["style"]["square_wl"], # 0b00
-            config["style"]["square_wd"], # 0b01
-            config["style"]["square_bl"], # 0b10
-            config["style"]["square_bd"]  # 0b11
+            config["style"]["square_bd"], # 0b00
+            config["style"]["square_bl"], # 0b01
+            config["style"]["square_wd"], # 0b10
+            config["style"]["square_wl"]  # 0b11
         ]
         self.attr_hi_piece = [
-            config["style"]["square_hi_wl"], # 0b00
-            config["style"]["square_hi_wd"], # 0b01
-            config["style"]["square_hi_bl"], # 0b10
-            config["style"]["square_hi_bd"]  # 0b11
+            config["style"]["square_hi_bd"], # 0b00
+            config["style"]["square_hi_bl"], # 0b01
+            config["style"]["square_hi_wd"], # 0b10
+            config["style"]["square_hi_wl"]  # 0b11
         ]
         self.attr_mv_piece = [
-            config["style"]["square_mv_wl"], # 0b00
-            config["style"]["square_mv_wd"], # 0b01
-            config["style"]["square_mv_bl"], # 0b10
-            config["style"]["square_mv_bd"]  # 0b11
+            config["style"]["square_mv_bd"], # 0b00
+            config["style"]["square_mv_bl"], # 0b01
+            config["style"]["square_mv_wd"], # 0b10
+            config["style"]["square_mv_wl"]  # 0b11
         ]
         self.attr_title = config["style"]["title"]
         self.attr_subtitle = config["style"]["subtitle"]
@@ -572,7 +572,7 @@ class UI:
     def ai_update(self, move):
         # The update here must be delayed because:
         # 1) ai_update might get called from an AI thread;
-        # 2) ai_update might get called from apply_move itself.
+        # 2) ai_update might get called from apply_move itself (for a book move).
         im.run_soon(lambda: self.apply_move(move))
 
     def eval_ai_update(self, result, fen):
