@@ -66,18 +66,18 @@ generated += \
         rm -rf build/Stockfish-sf_16.1
     """, ARCH=stockfish_arch)
 
-lczero_common_tag = "5680c5fad9f3b52288d67f738b272fd09de5ee0b"
+lczero_common_tag = "55e1b382efadd57903e37f2a2e29caef3ea85799"
 
 generated += \
-    env.Command("bchess/data/lc0", ["build/lc0-0.28.0.tar.gz", "build/lczero-common.tar.gz"], """
+    env.Command("bchess/data/lc0", ["build/lc0-0.31.2.tar.gz", "build/lczero-common.tar.gz"], """
         which meson
         which ninja
         cd build && \
-        tar vxf lc0-0.28.0.tar.gz && \
+        tar vxf lc0-0.31.2.tar.gz && \
         tar vxf lczero-common.tar.gz && \
-        cd lc0-0.28.0 && \
+        cd lc0-0.31.2 && \
         cp -a ../lczero-common-${LCZERO_COMMON_TAG}/. libs/lczero-common && \
-        cp -a ../lc0deps subprojects/packagefiles && \
+        cp -a ../lc0deps/* subprojects/packagefiles && \
         sed -i.bak -E '/^[a-z]*_url/d' subprojects/*wrap && \
         sed -i.bak -e 's/>=0.52/>=0.55/' -e "s/'eigen3'/'eigen3-xxx'/" -e "s/'zlib'/'zlib-xxx'/" meson.build && \
         ./build.sh minsize \
@@ -102,7 +102,7 @@ generated += \
             -Dembed=false \
             -Dnvcc_ccbin=false && \
         strip build/minsize/lc0
-        cp build/lc0-0.28.0/build/minsize/lc0 $TARGET
+        cp build/lc0-0.31.2/build/minsize/lc0 $TARGET
     """, LCZERO_COMMON_TAG=lczero_common_tag)
 
 File("PKG-INFO")
@@ -132,14 +132,14 @@ if os.path.exists(".hg") or os.path.exists(".git"):
         "wget -O $TARGET 'https://github.com/LeelaChessZero/lczero-common/archive/${LCZERO_COMMON_TAG}.tar.gz'",
         LCZERO_COMMON_TAG=lczero_common_tag)
 
-    generated_src += env.Command("build/lc0-0.28.0.tar.gz", [],
-        "wget -O $TARGET 'https://github.com/LeelaChessZero/lc0/archive/refs/tags/v0.28.0.tar.gz'")
+    generated_src += env.Command("build/lc0-0.31.2.tar.gz", [],
+        "wget -O $TARGET 'https://github.com/LeelaChessZero/lc0/archive/refs/tags/v0.31.2.tar.gz'")
 
-    generated_src += env.Command("build/lc0deps/eigen-3.3.7.tar.bz2", [],
-        "wget -O $TARGET 'https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2'")
+    generated_src += env.Command("build/lc0deps/eigen-3.4.0.tar.bz2", [],
+        "wget -O $TARGET 'https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.bz2'")
 
-    generated_src += env.Command("build/lc0deps/eigen-3.3.7-1u-wrap.zip", [],
-        "wget -O $TARGET 'https://github.com/borg323/eigen/files/5124100/eigen-3.3.7-1u-wrap.zip'")
+    generated_src += env.Command("build/lc0deps/eigen_3.4.0-1_patch.zip", [],
+        "wget -O $TARGET 'https://wrapdb.mesonbuild.com/v2/eigen_3.4.0-1/get_patch'")
 
     generated_src += env.Command("build/lc0deps/zlib-1.2.11.tar.gz", [],
         "wget -O $TARGET 'http://zlib.net/fossils/zlib-1.2.11.tar.gz'")
