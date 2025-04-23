@@ -455,10 +455,18 @@ class UI:
         elif move == "undo":
             if len(self.board.move_stack) < 2:
                 raise ValueError("Undo what?")
-            self.board.pop()
-            self.board.pop()
-            self.san_moves.pop()
-            self.san_moves.pop()
+            if self.move_index is not None:
+                while len(self.board.move_stack) > self.move_index:
+                    self.board.pop()
+                    self.board.pop()
+                    self.san_moves.pop()
+                    self.san_moves.pop()
+                self.move_index = None
+            else:
+                self.board.pop()
+                self.board.pop()
+                self.san_moves.pop()
+                self.san_moves.pop()
         elif move == "flip":
             self.flip = not self.flip
         elif move in ("quit", "exit", "resign"):
