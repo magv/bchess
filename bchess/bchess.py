@@ -471,7 +471,7 @@ class UI:
             self.flip = not self.flip
         elif move in ("quit", "exit", "resign"):
             exit(0)
-        elif move in "help":
+        elif move == "help":
             self.help = not self.help
         else:
             try:
