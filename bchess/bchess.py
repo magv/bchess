@@ -566,7 +566,8 @@ class UI:
                         MoveList(self, moves, hi=self.move_index, maxheight=8*3, attr=self.attr_move, hi_attr=self.attr_move_hi)
 
     def rewind(self, move_index):
-        self.move_index = max(move_index, 0) if move_index < len(self.board.move_stack) else None
+        move_index = max(move_index, 0)
+        self.move_index = move_index if move_index < len(self.board.move_stack) else None
         im.want_refresh = True
 
     def ai_update(self, move):
